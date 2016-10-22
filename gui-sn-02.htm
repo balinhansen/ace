@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>code.hackerplex.com - Developer Resources</title>
+<style>
+
+.info{
+position:absolute;
+border:1px solid black;
+width:1in;
+height:1in;
+background-color:#f0e8d0;
+display:inline-block;
+vertical-align:center;
+text-align:center;
+}
+
+
+
+</style>
+
+<script>
+
+nodes=new Array();
+
+grabbed=new Object();
+grabbed.nodes=new Array();
+grabbed.empty=new Array();
+grabbed.emptylock=false;
+twarn=false;
+
+var CurX=0
+var CurY=0;
+
+function leave(e){
+	if (!e) var e = window.event;
+	var tg = (window.event) ? e.srcElement : e.target;
+	if (tg.nodeName != 'DIV') return;
+	var reltg = (e.relatedTarget) ? e.relatedTarget : e.toElement;
+	while (reltg != tg && reltg.nodeName != 'HTML')
+		reltg= reltg.parentNode
+	if (reltg== tg) return;
+        
+	// Handle event
+}
+
+function hover(e){
+	if (!e) var e = window.event;
+	var relTarg = e.relatedTarget || e.fromElement;
+}
+
+function grab(e){
+	var l=0;
+	if (!e) var e = window.event;
+	var tg = (window.event) ? e.srcElement : e.target;
+
+if (e.touches && !twarn){alert("touches enabled");twarn=true;}
+
+	if (l=grabbed.empty.length){
+		while (grabbed.emptylock){
+			// wait for unlock
+		}	
+		grabbed.emptylock=true;
+		grab_id=grabbed.empty[grabbed.empty.length-1]
+		grabbed.empty.pop();
+		grabbed.emptylock=false;
+	}else{
+		grab_id=grabbed.nodes.length
+	}
+	grabbed.nodes[grab_id]=new Object();
+	grabbed.nodes[grab_id].empty=false;
+
+
+	grabbed.nodes[grab_id].Touch=(!e.touches)?(!e.touch?0:e.touch):e.touches[0];
+
+
+if (e.touches){
+        grabbed.nodes[grab_id].Touch=e.touches;
+	tgob=document.getElementById(tg.id);
+
+        grabbed.nodes[grab_id].LayX=e.touches[0].pageX-tgob.offsetLeft;
+
+        grabbed.nodes[grab_id].LayY=e.touches[0].pageY-tgob.offsetTop;
+
+
+}else{
+        grabbed.nodes[grab_id].LayX=e.layerX
+        grabbed.nodes[grab_id].LayY=e.layerY
+}
+
+	if (e.touches){
+		CurX=e.touches[0].pageX;	
+		CurY=e.touches[0].pageY;
+	}else{
+	if (e.pageX || e.pageY) {
+	CurX=e.pageX;
+	CurY=e.pageY;
+	}
+	else if (e.clientX || e.clientY) {
+	CurX=grabbed.nodes[grab_id].PosX=e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft-e.layerX;
+	CurY=grabbed.nodes[grab_id].PosY=e.clientY + document.body.scrollTop + document.documentElement.scrollTop;-e.layerY;
+	}}
+	
+	grabbed.nodes[grab_id].PosX=CurX-e.layerX;
+	grabbed.nodes[grab_id].PosY=CurY-e.layerY;
+	
+	grabbed.nodes[grab_id].ElementId=tg.id;
+	document.onmousemove=update_coordinates;
+	setTimeout("move_grabbed()",33);
+}
+
+function update_coordinates(e){
+	if (!e) var e=window.event;
+	if (e.touches){
+		CurX=e.touches[0].pageX;
+		CurY=e.touches[0].pageY;
+document.getElementById('reader').value=e.touches.length+" - "+CurX+","+CurY;
+	}else{
+	if (e.pageX || e.pageY) {
+                CurX=e.pageX;
+                CurY=e.pageY;
+        }
+        else if (e.clientX || e.clientY) {
+                CurX=e.clientX + document.body.scrollLeft
+                        + document.documentElement.scrollLeft;
+                CurY=e.clientY + document.body.scrollTop
+                        + document.documentElement.scrollTop;
+        }}
+}
+
+function move_grabbed(){
+	var l=0;
+	var nodeElement;
+	if (l=grabbed.nodes.length){
+		for (i=0;i<l;i++){
+			if (!grabbed.nodes[i].empty){
+				nodeElement=document.getElementById(grabbed.nodes[i].ElementId);
+				grabbed.nodes[i].PosX=CurX-grabbed.nodes[i].LayX;
+				nodeElement.style.left=grabbed.nodes[i].PosX+"px";
+
+				grabbed.nodes[i].PosY=CurY-grabbed.nodes[i].LayY;
+				nodeElement.style.top=grabbed.nodes[i].PosY+"px";
+
+			}
+		}
+		setTimeout("move_grabbed()",33);
+	}
+	return false;
+}
+
+function donothing(e){
+return false;
+}
+
+function release(e){
+	document.mousemove=donothing;
+
+	if (!e) var e = window.event;
+	for (i=0;i<grabbed.nodes.length;i++){
+		grabbed.nodes[i].empty=true;
+		grabbed.nodes[i].PosX=0;
+		grabbed.nodes[i].PosY=0;
+		grabbed.nodes[i].LayX=0;
+		grabbed.nodes[i].LayY=0;
+		grabbed.empty[grabbed.empty.length]=i;
+	}
+
+}
+
+</script>
+</head>
+
+<BODY>
+
+<form><input id=reader></form>
+
+<div id="info" class="info" onmousein="javascript: hover(event)" onmouseout="javascript: leave(event)" onmousedown="javascript: grab(event);" onmouseup="javascript: release();">info</div>
+
+<script>
+document.getElementById("info").addEventListener('touchstart', function(event) {
+    grab(event);
+}, false);
+
+document.getElementById("info").addEventListener('touchmove', function(event) {
+    update_coordinates(event);
+}, false);
+
+document.getElementById("info").addEventListener('touchend', function(event) {
+    release(event);
+}, false);
+
+
+</script>
+
+</body>
+</html>
